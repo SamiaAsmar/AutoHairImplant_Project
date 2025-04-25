@@ -1,4 +1,4 @@
-# 🧠 Hair Transplant Automation System (Graduation Project)
+# 🧑🏻‍🦲 Hair Transplant Automation System (Graduation Project)
 
 ## 📘 Overview
 
