@@ -14,7 +14,7 @@ float temperature = 0;
 
 void setup() {
   Serial.begin(9600);  
-  Serial1.begin(9500);   
+  Serial1.begin(9600);   
 
   Wire.begin();
   u8g2.begin();
