@@ -13,8 +13,8 @@ String tempStr = "N/A";
 float temperature = 0;
 
 void setup() {
-  Serial.begin(115200);  
-  Serial1.begin(115200);   
+  Serial.begin(9600);  
+  Serial1.begin(9500);   
 
   Wire.begin();
   u8g2.begin();
