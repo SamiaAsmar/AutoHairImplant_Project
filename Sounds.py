@@ -93,3 +93,48 @@ except serial.SerialException as e:
     print(f"Error opening serial port: {e}")
 except KeyboardInterrupt:
     print("Exiting...")
+
+
+//////////////////////////////////////////////////////////
+import serial
+import time
+import os
+import subprocess
+
+SERIAL_PORT = '/dev/ttyACM0'
+BAUD_RATE = 9600
+SOUNDS_DIR = '/home/jood/'
+
+alert_sounds = {
+    "LOW_BPM": "LowPulse.mp3",
+    "HIGH_BPM": "HighPulse.mp3",
+    "LOW_TEMP": "LowTemp.mp3",
+    "HIGH_TEMP": "HighTemp.mp3"
+}
+
+def play_sound(file_name):
+    file_path = os.path.join(SOUNDS_DIR, file_name)
+    if os.path.exists(file_path):
+        print(f"Playing: {file_path}")
+        subprocess.Popen(['mpg123', file_path])
+    else:
+        print(f"Sound file not found: {file_path}")
+
+try:
+    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=0.1)
+    print("Listening for alerts from Arduino...")
+    time.sleep(2)
+
+    while True:
+        if ser.in_waiting > 0:
+            line = ser.readline().decode('utf-8').strip()
+            if line:
+                print(f"Received: {line}")
+                if line in alert_sounds:
+                    play_sound(alert_sounds[line])
+        time.sleep(0.01)
+
+except serial.SerialException as e:
+    print(f"Serial Error: {e}")
+except KeyboardInterrupt:
+    print("Exiting...")
