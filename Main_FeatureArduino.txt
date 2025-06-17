@@ -63,10 +63,9 @@ bool wasMovingY = false;
 long savedPosition = 0;
 bool isStopped = false;
 
-float lastYValue = 0;  // ضيفها فوق في الـ global variables
+float lastYValue = 0;  
 
-
-bool motionCompleted = true;  // جاهز بالبداية
+bool motionCompleted = true;  
 
 
 void setup() {
@@ -128,7 +127,7 @@ void checkUltrasonic() {
 }
 
 unsigned long lastEmergencyStopDebounceTime = 0;
-const unsigned long emergencyStopDebounceDelay = 50; // 50 مللي ثانية
+const unsigned long emergencyStopDebounceDelay = 50; 
 
 void checkEmergencyStop() {
   bool currentEmergencyState = (digitalRead(emergencyStopPin) == LOW); // LOW = pressed
@@ -139,12 +138,10 @@ void checkEmergencyStop() {
   }
 
   if ((millis() - lastEmergencyStopDebounceTime) > emergencyStopDebounceDelay) {
-    // إذا كانت الحالة المستقرة للزر مختلفة عن الحالة المسجلة
     if (currentEmergencyState != emergencyStopActive) {
       emergencyStopActive = currentEmergencyState;
 
       if (emergencyStopActive) {
-        // زر الطوارئ تم الضغط عليه (بعد التأكد من عدم وجود اهتزاز)
         savedXTarget = stepperX.targetPosition();
         savedYTarget = stepperY.targetPosition();
         wasMovingX = (stepperX.distanceToGo() != 0);
@@ -156,7 +153,6 @@ void checkEmergencyStop() {
         stepperY.disableOutputs();
         Serial.println("EMERGENCY_ON");
       } else {
-        // زر الطوارئ تم تحريره (بعد التأكد من عدم وجود اهتزاز)
         stepperX.enableOutputs();
         stepperY.enableOutputs();
         if (wasMovingX) stepperX.moveTo(savedXTarget);
@@ -224,12 +220,10 @@ void processAngleCommand(String data) {
   delay(100);
 
   current_angle = new_angle;
-  // Serial.println("Done");
 }
 
 void processCoordinateCommand(String data) {
   if (emergencyStopActive) {
-    // Serial.println("EMERGENCY_ON");
     return;
   }
 
@@ -241,25 +235,10 @@ void processCoordinateCommand(String data) {
   float phi_y = (inputY_angle_ratio / HEAD_RADIUS_MM) * (PI / 2);
   float y_pos_mm = ARM_LENGTH_MM * sin(phi_y);
   long targetY_steps = round(y_pos_mm * STEPS_PER_MM);
-
-  // float deltaX = (newX_mm - currentX_mm) * 4;
-  // long targetX_steps = round(deltaX * STEPS_PER_MM);
-
-  // if (targetX_steps > stepperX.currentPosition()) {
-  //   stepperX.moveTo(stepperX.currentPosition() + (targetX_steps + 60));
-  // } else {
-  //   stepperX.moveTo(stepperX.currentPosition() + (targetX_steps - 60));
-  // }
-
-  // while (stepperX.distanceToGo() != 0) {
-  //   checkUltrasonic();
-  //   if (!systemStopped) stepperX.run();
-  // }
   float deltaX = (newX_mm - currentX_mm) * 4;
   long targetX_steps = round(deltaX * STEPS_PER_MM);
 
-  // أضف هذا الشرط قبل التحريك
-  if (abs(targetX_steps) > 5) { // مثلاً لو أكثر من 5 خطوات فقط
+  if (abs(targetX_steps) > 5) { 
     if (targetX_steps > 0) {
       stepperX.moveTo(stepperX.currentPosition() + (targetX_steps + 60));
     } else {
@@ -271,18 +250,12 @@ void processCoordinateCommand(String data) {
     checkEmergencyStop();
 
     if (emergencyStopActive) {
-      // Serial.println("EMERGENCY_ON");
-      // لا نرجع، فقط نخرج من اللوب والحركة بتكمل من loop
       continue;
     }
-
     if (!systemStopped) stepperX.run();
   }
-
-
   delay(50);
 
-  // تحديد كمية الزيادة بناء على أول نقطة أو إذا النقطة الجديدة أكبر أو أصغر
   int yOffset = 30;
   if (lastYValue != 0) {
     if (inputY_angle_ratio < lastYValue) {
@@ -305,18 +278,6 @@ void processCoordinateCommand(String data) {
 
   if (!systemStopped) stepperY.run();
 }    
-
-
-
-  // if (systemStopped) {
-  //   Serial.println("Servo move skipped due to stop condition!");
-  // } else {
-    
-  //   myServo.write(0);
-  //   delay(1000);   
-  //   myServo.write(180);
-  //   delay(500);    
-  // }
 
    if (systemStopped || emergencyStopActive) {
     Serial.println("Servo move skipped due to stop condition!");
@@ -351,17 +312,14 @@ void stepMotorY(int stepPin) {
 }
 
 void loop() {
-  // التحقق من زر الطوارئ
   checkEmergencyStop();
 
-  // قراءة حالة زر التبديل
   bool currentButtonState = digitalRead(modeButtonPin);
   if (lastButtonState == HIGH && currentButtonState == LOW && !emergencyStopActive) {
-    // زر ضغط
-    controlModeJoystick = !controlModeJoystick; // التبديل بين الوضعين
+    controlModeJoystick = !controlModeJoystick; 
     Serial.print("Control mode changed to: ");
     Serial.println(controlModeJoystick ? "Joystick" : "Serial");
-    delay(300);  // منع الاهتزاز
+    delay(300);  
   }
   lastButtonState = currentButtonState;
 
@@ -377,25 +335,22 @@ void loop() {
       bool xMaxPressed = digitalRead(xMaxSwitch) == LOW;
       bool yMinPressed = digitalRead(yMinSwitch) == LOW;
 
-      // التحكم بمحور X
       if (xValue < thresholdLow && !xMinPressed) {
-        digitalWrite(3, LOW);  // اتجاه اليسار
+        digitalWrite(3, LOW); 
         stepMotor(2);
       } else if (xValue > thresholdHigh && !xMaxPressed) {
-        digitalWrite(3, HIGH); // اتجاه اليمين
+        digitalWrite(3, HIGH); 
         stepMotor(2);
       }
 
-      // التحكم بمحور Y
       if (yValue < thresholdLow && !yMinPressed) {
-        digitalWrite(5, LOW);  // اتجاه لأعلى
+        digitalWrite(5, LOW);  
         stepMotorY(4);
       } else if (yValue > thresholdHigh) {
-        digitalWrite(5, HIGH); // اتجاه لأسفل
+        digitalWrite(5, HIGH); 
         stepMotorY(4);
       }
     } else {
-      // تحكم بالسيريال
       if (Serial.available()) {
         String data = Serial.readStringUntil('\n');
         Serial.println("Received: [" + data + "]");
@@ -408,8 +363,6 @@ void loop() {
         }
       }
     }
-
-    // تشغيل الحركة التلقائية للستبرات
     stepperX.run();
     stepperY.run();
 
@@ -423,11 +376,7 @@ void loop() {
   motionCompleted = true;
 }
   }
-  // بعد انتهاء كل شيء، اطبع "Done" مرة واحدة
 
-
-
-  // حركة السيرفو
  if (isServoMoving && !emergencyStopActive) {
     if (!systemStopped) {
       if (lastServoAngle != targetServoAngle) {
