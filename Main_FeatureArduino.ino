@@ -65,7 +65,8 @@ bool isStopped = false;
 
 float lastYValue = 0;  
 
-bool motionCompleted = true;  
+
+bool motionCompleted = true; 
 
 
 void setup() {
@@ -220,10 +221,12 @@ void processAngleCommand(String data) {
   delay(100);
 
   current_angle = new_angle;
+  // Serial.println("Done");
 }
 
 void processCoordinateCommand(String data) {
   if (emergencyStopActive) {
+    // Serial.println("EMERGENCY_ON");
     return;
   }
 
@@ -235,9 +238,24 @@ void processCoordinateCommand(String data) {
   float phi_y = (inputY_angle_ratio / HEAD_RADIUS_MM) * (PI / 2);
   float y_pos_mm = ARM_LENGTH_MM * sin(phi_y);
   long targetY_steps = round(y_pos_mm * STEPS_PER_MM);
+
+  // float deltaX = (newX_mm - currentX_mm) * 4;
+  // long targetX_steps = round(deltaX * STEPS_PER_MM);
+
+  // if (targetX_steps > stepperX.currentPosition()) {
+  //   stepperX.moveTo(stepperX.currentPosition() + (targetX_steps + 60));
+  // } else {
+  //   stepperX.moveTo(stepperX.currentPosition() + (targetX_steps - 60));
+  // }
+
+  // while (stepperX.distanceToGo() != 0) {
+  //   checkUltrasonic();
+  //   if (!systemStopped) stepperX.run();
+  // }
   float deltaX = (newX_mm - currentX_mm) * 4;
   long targetX_steps = round(deltaX * STEPS_PER_MM);
 
+  // أضف هذا الشرط قبل التحريك
   if (abs(targetX_steps) > 5) { 
     if (targetX_steps > 0) {
       stepperX.moveTo(stepperX.currentPosition() + (targetX_steps + 60));
@@ -250,10 +268,13 @@ void processCoordinateCommand(String data) {
     checkEmergencyStop();
 
     if (emergencyStopActive) {
+      // Serial.println("EMERGENCY_ON");
       continue;
     }
+
     if (!systemStopped) stepperX.run();
   }
+
   delay(50);
 
   int yOffset = 30;
@@ -278,7 +299,6 @@ void processCoordinateCommand(String data) {
 
   if (!systemStopped) stepperY.run();
 }    
-
    if (systemStopped || emergencyStopActive) {
     Serial.println("Servo move skipped due to stop condition!");
   } else {
@@ -316,6 +336,7 @@ void loop() {
 
   bool currentButtonState = digitalRead(modeButtonPin);
   if (lastButtonState == HIGH && currentButtonState == LOW && !emergencyStopActive) {
+    // زر ضغط
     controlModeJoystick = !controlModeJoystick; 
     Serial.print("Control mode changed to: ");
     Serial.println(controlModeJoystick ? "Joystick" : "Serial");
@@ -327,7 +348,6 @@ void loop() {
 
   if (!systemStopped && !emergencyStopActive) {
     if (controlModeJoystick) {
-      // تحكم بالجويستيك
       int xValue = analogRead(joystickX);
       int yValue = analogRead(joystickY);
 
@@ -363,6 +383,7 @@ void loop() {
         }
       }
     }
+
     stepperX.run();
     stepperY.run();
 
@@ -376,7 +397,6 @@ void loop() {
   motionCompleted = true;
 }
   }
-
  if (isServoMoving && !emergencyStopActive) {
     if (!systemStopped) {
       if (lastServoAngle != targetServoAngle) {
